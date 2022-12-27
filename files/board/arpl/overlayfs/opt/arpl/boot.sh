@@ -78,7 +78,7 @@ done < <(readConfigMap "cmdline" "${USER_CONFIG_FILE}")
 # Check if machine has EFI
 [ -d /sys/firmware/efi ] && EFI=1 || EFI=0
 # Read EFI bug value
-EFI_BUG="`readModelKey "${MODEL}" "builds.${BUILD}.efi-bug"`"
+[ "${MODEL}" = "DS3615" ] && EFI_BUG=1 || EFI_BUG=0
 
 LOADER_DISK="`blkid | grep 'LABEL="ARPL3"' | cut -d3 -f1`"
 BUS=`udevadm info --query property --name ${LOADER_DISK} | grep ID_BUS | cut -d= -f2`
@@ -105,15 +105,18 @@ CMDLINE_LINE=""
 grep -q "force_junior" /proc/cmdline && CMDLINE_LINE+="force_junior "
 [ ${EFI} -eq 1 ] && CMDLINE_LINE+="withefi "
 [ "${BUS}" = "ata" ] && CMDLINE_LINE+="synoboot_satadom=${DOM} dom_szmax=${SIZE} "
-CMDLINE_LINE+="console=ttyS0,115200n8 earlyprintk log_buf_len=32M earlycon=uart8250,io,0x3f8,115200n8 elevator=elevator root=/dev/md0 loglevel=15"
+CMDLINE_DIRECT="${CMDLINE_LINE}"
+CMDLINE_LINE+="console=ttyS0,115200n8 earlyprintk earlycon=uart8250,io,0x3f8,115200n8 root=/dev/md0 loglevel=15 log_buf_len=32M"
 for KEY in ${!CMDLINE[@]}; do
   VALUE="${CMDLINE[${KEY}]}"
   CMDLINE_LINE+=" ${KEY}"
+  CMDLINE_DIRECT+=" ${KEY}"
   [ -n "${VALUE}" ] && CMDLINE_LINE+="=${VALUE}"
+  [ -n "${VALUE}" ] && CMDLINE_DIRECT+="=${VALUE}"
 done
 # Escape special chars
 CMDLINE_LINE=`echo ${CMDLINE_LINE} | sed 's/>/\\\\>/g'`
-grub-editenv ${GRUB_PATH}/grubenv set dsm_cmdline="${CMDLINE_LINE}"
+CMDLINE_DIRECT=`echo ${CMDLINE_DIRECT} | sed 's/>/\\\\>/g'`
 echo -e "Cmdline:\n\033[1;36m${CMDLINE_LINE}\033[0m"
 
 # Wait for an IP
@@ -124,7 +127,7 @@ while true; do
   if [ -n "${IP}" ]; then
     echo -e ": \033[1;32m${IP}\033[0m"
     break
-  elif [ ${COUNT} -eq 15 ]; then
+  elif [ ${COUNT} -eq 30 ]; then
     echo -e ": \033[1;31mERROR\033[0m"
     break
   fi
@@ -135,6 +138,7 @@ done
 
 DIRECT="`readConfigKey "directboot" "${USER_CONFIG_FILE}"`"
 if [ "${DIRECT}" = "true" ]; then
+  grub-editenv ${GRUB_PATH}/grubenv set dsm_cmdline="${CMDLINE_DIRECT}"
   echo -e "\033[1;33mReboot to boot directly in DSM\033[0m"
   grub-editenv ${GRUB_PATH}/grubenv set next_entry="direct"
   reboot

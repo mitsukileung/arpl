@@ -6,6 +6,7 @@ synoinfo: &synoinfo
   esataportcfg: "0x00"
   support_bde_internal_10g: "no"
   support_oob_ctl: "no"
+  support_led_brightness_adjustment: "no"
   rss_server: "https://raw.githubusercontent.com/fbelavenuto/arpl/main/rss.xml"     # http://update7.synology.com/autoupdate/genRSS.php
   rss_server_ssl: "https://raw.githubusercontent.com/fbelavenuto/arpl/main/rss.xml" # https://update7.synology.com/autoupdate/genRSS.php
   rss_server_v2: "https://raw.githubusercontent.com/fbelavenuto/arpl/main/rss.json" # https://update7.synology.com/autoupdate/v2/getList
@@ -15,6 +16,7 @@ cmdline: &cmdline
   vender_format_version: 2
   syno_port_thaw: 1
   syno_hdd_detect: 0
+  elevator: elevator
 platform: "broadwellnk"
 unique: "synology_broadwellnk_3622xs+"
 dom: 1
@@ -32,7 +34,6 @@ builds:
     ver: "7.0.1"
     kver: "4.4.180"
     rd-compressed: false
-    efi-bug: no
     cmdline:
       <<: *cmdline
     synoinfo:
@@ -54,7 +55,6 @@ builds:
     ver: "7.1.0"
     kver: "4.4.180"
     rd-compressed: false
-    efi-bug: no
     cmdline:
       <<: *cmdline
     synoinfo:
@@ -76,7 +76,6 @@ builds:
     ver: "7.1.1"
     kver: "4.4.180"
     rd-compressed: false
-    efi-bug: no
     cmdline:
       <<: *cmdline
     synoinfo:

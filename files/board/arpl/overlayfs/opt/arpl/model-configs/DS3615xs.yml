@@ -6,6 +6,7 @@ synoinfo: &synoinfo
   supportssdcache: "no"
   esataportcfg: "0x0"
   usbportcfg: "0x8700"
+  support_led_brightness_adjustment: "no"
   rss_server: "https://raw.githubusercontent.com/fbelavenuto/arpl/main/rss.xml"
   rss_server_ssl: "https://raw.githubusercontent.com/fbelavenuto/arpl/main/rss.xml"
 cmdline: &cmdline
@@ -14,6 +15,7 @@ cmdline: &cmdline
   vender_format_version: 2
   syno_port_thaw: 1
   syno_hdd_detect: 0
+  elevator: elevator
 platform: "bromolow"
 unique: "synology_bromolow_3615xs"
 serial:
@@ -31,7 +33,6 @@ builds:
     ver: "7.0.1"
     kver: "3.10.108"
     rd-compressed: false
-    efi-bug: yes
     cmdline:
       <<: *cmdline
     synoinfo:
@@ -53,7 +54,6 @@ builds:
     ver: "7.1.0"
     kver: "3.10.108"
     rd-compressed: false
-    efi-bug: yes
     cmdline:
       <<: *cmdline
     synoinfo:
@@ -75,7 +75,6 @@ builds:
     ver: "7.1.1"
     kver: "3.10.108"
     rd-compressed: false
-    efi-bug: no
     cmdline:
       <<: *cmdline
     synoinfo:

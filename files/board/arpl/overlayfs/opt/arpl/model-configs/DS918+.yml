@@ -3,18 +3,20 @@ synoinfo: &synoinfo
   support_disk_compatibility: "no"
   support_memory_compatibility: "no"
   esataportcfg: "0x00"
-  support_led_brightness_adjustment: ""
+  support_led_brightness_adjustment: "no"
   support_leds_lp3943: ""
   buzzeroffen: "0xffff"
   rss_server: "https://raw.githubusercontent.com/fbelavenuto/arpl/main/rss.xml"
   rss_server_ssl: "https://raw.githubusercontent.com/fbelavenuto/arpl/main/rss.xml"
   rss_server_v2: "https://raw.githubusercontent.com/fbelavenuto/arpl/main/rss.json"
+  #support_ssd_cache: yes
 cmdline: &cmdline
   syno_hdd_powerup_seq: 0
   HddHotplug: 0
   vender_format_version: 2
   syno_port_thaw: 1
   syno_hdd_detect: 0
+  elevator: elevator
 platform: "apollolake"
 unique: "synology_apollolake_918+"
 dom: 2
@@ -34,7 +36,6 @@ builds:
     ver: "7.0.1"
     kver: "4.4.180"
     rd-compressed: false
-    efi-bug: no
     cmdline:
       <<: *cmdline
     synoinfo:
@@ -56,7 +57,6 @@ builds:
     ver: "7.1.0"
     kver: "4.4.180"
     rd-compressed: false
-    efi-bug: no
     cmdline:
       <<: *cmdline
     synoinfo:
@@ -78,7 +78,6 @@ builds:
     ver: "7.1.1"
     kver: "4.4.180"
     rd-compressed: false
-    efi-bug: no
     cmdline:
       <<: *cmdline
     synoinfo:
