@@ -968,11 +968,13 @@ function keymapMenu() {
   KEYMAP=${resp}
   writeConfigKey "layout" "${LAYOUT}" "${USER_CONFIG_FILE}"
   writeConfigKey "keymap" "${KEYMAP}" "${USER_CONFIG_FILE}"
-  zcat /usr/share/keymaps/i386/${LAYOUT}/${KEYMAP}.map.gz | loadkeys
+  loadkeys /usr/share/keymaps/i386/${LAYOUT}/${KEYMAP}.map.gz
 }
 
 ###############################################################################
 function updateMenu() {
+  PLATFORM="`readModelKey "${MODEL}" "platform"`"
+  KVER="`readModelKey "${MODEL}" "builds.${BUILD}.kver"`"
   while true; do
     dialog --backtitle "`backtitle`" --menu "Choose a option" 0 0 0 \
       a "Update arpl" \
@@ -1024,13 +1026,20 @@ function updateMenu() {
         dialog --backtitle "`backtitle`" --title "Update arpl" --aspect 18 \
           --infobox "Installing new files" 0 0
         # Process update-list.yml
-        while IFS="=" read KEY VALUE; do
-          mv /tmp/`basename "${KEY}"` "${VALUE}"
-        done < <(readConfigMap "replace" "/tmp/update-list.yml")
         while read F; do
           [ -f "${F}" ] && rm -f "${F}"
           [ -d "${F}" ] && rm -Rf "${F}"
         done < <(readConfigArray "remove" "/tmp/update-list.yml")
+        while IFS="=" read KEY VALUE; do
+          if [ "${KEY: -1}" = "/" ]; then
+            rm -Rf "${VALUE}"
+            mkdir -p "${VALUE}"
+            gzip -dc "/tmp/`basename "${KEY}"`.tgz" | tar xf - -C "${VALUE}"
+          else
+            mkdir -p "`dirname "${VALUE}"`"
+            mv "/tmp/`basename "${KEY}"`" "${VALUE}"
+          fi
+        done < <(readConfigMap "replace" "/tmp/update-list.yml")
         dialog --backtitle "`backtitle`" --title "Update arpl" --aspect 18 \
           --yesno "Arpl updated with success to ${TAG}!\nReboot?" 0 0
         [ $? -ne 0 ] && continue
@@ -1132,6 +1141,13 @@ function updateMenu() {
           rm "${MODULES_PATH}/${P}.tgz"
           mv "/tmp/${P}.tgz" "${MODULES_PATH}/${P}.tgz"
         done
+        # Rebuild modules if model/buildnumber is selected
+        if [ -n "${PLATFORM}" -a -n "${KVER}" ]; then
+          writeConfigKey "modules" "{}" "${USER_CONFIG_FILE}"
+          while read ID DESC; do
+            writeConfigKey "modules.${ID}" "" "${USER_CONFIG_FILE}"
+          done < <(getAllModules "${PLATFORM}" "${KVER}")
+        fi
         DIRTY=1
         dialog --backtitle "`backtitle`" --title "Update Modules" --aspect 18 \
           --msgbox "Modules updated with success!" 0 0
@@ -1146,7 +1162,7 @@ function updateMenu() {
 
 if [ "x$1" = "xb" -a -n "${MODEL}" -a -n "${BUILD}" -a loaderIsConfigured ]; then
   make
-  boot
+  boot && exit 0 || sleep 5
 fi
 # Main loop
 NEXT="m"
@@ -1190,7 +1206,7 @@ while true; do
     i) synoinfoMenu; NEXT="v" ;;
     v) advancedMenu; NEXT="d" ;;
     d) make; NEXT="b" ;;
-    b) boot ;;
+    b) boot && exit 0 || sleep 5 ;;
     k) keymapMenu ;;
     c) dialog --backtitle "`backtitle`" --title "Cleaning" --aspect 18 \
       --prgbox "rm -rfv \"${CACHE_PATH}/dl\"" 0 0 ;;
@@ -1200,4 +1216,3 @@ while true; do
 done
 clear
 echo -e "Call \033[1;32mmenu.sh\033[0m to return to menu"
-

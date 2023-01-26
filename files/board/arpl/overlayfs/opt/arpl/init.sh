@@ -50,7 +50,10 @@ ln -s "${CACHE_PATH}/ssh" "/etc/ssh"
 # Link bash history to cache volume
 rm -rf ~/.bash_history
 ln -s ${CACHE_PATH}/.bash_history ~/.bash_history
-
+touch ~/.bash_history
+if ! grep -q "menu.sh" ~/.bash_history; then
+  echo "menu.sh " >> ~/.bash_history
+fi
 # Check if exists directories into P3 partition, if yes remove and link it
 if [ -d "${CACHE_PATH}/model-configs" ]; then
   rm -rf "${MODEL_CONFIG_PATH}"
@@ -144,6 +147,9 @@ if [ -f /usr/share/keymaps/i386/${LAYOUT}/${KEYMAP}.map.gz ]; then
   zcat /usr/share/keymaps/i386/${LAYOUT}/${KEYMAP}.map.gz | loadkeys
 fi
 
+# Enable Wake on Lan, ignore errors
+ethtool -s eth0 wol g 2>/dev/null
+
 # Decide if boot automatically
 BOOT=1
 if ! loaderIsConfigured; then
@@ -155,7 +161,9 @@ elif grep -q "IWANTTOCHANGETHECONFIG" /proc/cmdline; then
 fi
 
 # If is to boot automatically, do it
-[ ${BOOT} -eq 1 ] && boot.sh
+if [ ${BOOT} -eq 1 ]; then 
+  boot.sh && exit 0
+fi
 
 # Wait for an IP
 COUNT=0
